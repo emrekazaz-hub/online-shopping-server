@@ -79,7 +79,7 @@ const usersDb = [
 
 // database login
 app.post('/login/signin', (req, res) => {
-    const { userEmail, userPassword, userName } = req.body;
+    const { userEmail } = req.body;
 
     database('users')
         .select('*')
@@ -103,7 +103,7 @@ app.post('/login/signin', (req, res) => {
 
 /// LoginPage - sign up
 app.post('/login/signup', (req, res) => {
-    const { userEmail, userPassword, userName } = req.body;
+    const { userEmail, userPassword, userName, isCheckBoxSelected } = req.body;
     database('users')
         .select('*').from('users').where('email', userEmail)
         .then(existingUser => {
@@ -119,9 +119,10 @@ app.post('/login/signup', (req, res) => {
                         name: userName,
                         email: userEmail,
                         password: userPassword,
+                        role: isCheckBoxSelected
                     })
                     .then(() => {
-                        const user = { name: userName, email: userEmail }
+                        const user = { name: userName, email: userEmail, role: isCheckBoxSelected }
                         res.json({ status: 'addUser', user });
                         console.log('kullanici eklendi')
                     })
@@ -201,6 +202,71 @@ app.get('/cardpaymentdelete/:userId', (req, res) => {
             console.error('Error while deleting payment card:', err);
             res.status(500).json({ status: 'error-delete' });
         });
+});
+
+
+// set new adres
+app.post('/profile/adress-new/:userId', (req, res) => {
+    const { userEmail, userAdress, userAdress2, userCity, userAdressState, userZip } = req.body;
+    const userId = req.params.userId;
+
+    database('adress')
+        .insert({
+            userid: userId,
+            email: userEmail,
+            adress: userAdress,
+            adress2: userAdress2,
+            city: userCity,
+            adress_state: userAdressState,
+            zip: userZip
+        })
+        .then(() => {
+            const newAdressOfUser = {
+                userid: userId,
+                email: userEmail, // Değiştirildi
+                adress: userAdress,
+                adress2: userAdress2,
+                city: userCity,
+                adress_state: userAdressState,
+                zip: userZip
+            }
+            res.json({ status: 'adress-success', newAdressOfUser });
+        })
+        .catch(err => {
+            res.status(500).json({ status: 'erraddadress' });
+        })
+
+});
+
+
+
+// get user adress
+app.get('/profile/adress/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    database('adress')
+        .select('*')
+        .from('adress')
+        .where('userid', userId)
+        .then(adressInfo => {
+            if (adressInfo.length > 0) {
+                res.json({ status: 'adressGet', userAdress: adressInfo });
+                console.log('Alinan adresler: ', adressInfo);
+            } else {
+                console.log('Adres bulunamadı');
+                res.status(404).json({ status: 'noAdressFound' });
+            }
+        })
+        .catch(err => {
+            console.log('Hata mesaji', err);
+            res.status(500).json({ status: 'adressCannotGet' });
+        });
+});
+
+// get role from db
+app.get('/role/:userId', (req, res) => {
+    const userId = req.body.params;
+
 });
 
 // HomePage
