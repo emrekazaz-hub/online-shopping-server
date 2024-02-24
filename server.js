@@ -223,7 +223,7 @@ app.post('/profile/adress-new/:userId', (req, res) => {
         .then(() => {
             const newAdressOfUser = {
                 userid: userId,
-                email: userEmail, // Değiştirildi
+                email: userEmail,
                 adress: userAdress,
                 adress2: userAdress2,
                 city: userCity,
@@ -262,6 +262,118 @@ app.get('/profile/adress/:userId', (req, res) => {
             res.status(500).json({ status: 'adressCannotGet' });
         });
 });
+
+
+// add products
+app.post('/profile/admin/addProduct/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const { productName, productDescription, productPrice, productQuantity, selectedCategory, selectedSubCategory, productImage } = req.body;
+
+    database('products')
+        .insert({
+            userid: userId,
+            productname: productName,
+            description: productDescription,
+            price: productPrice,
+            stock_quantity: productQuantity,
+            category_name: selectedCategory,
+            sub_category_name: selectedSubCategory,
+            image_url: productImage
+        })
+        .then(() => {
+            const product = {
+                userid: userId,
+                productname: productName,
+                description: productDescription,
+                price: productPrice,
+                stock_quantity: productQuantity,
+                category_name: selectedCategory,
+                sub_category_name: selectedSubCategory,
+                image_url: productImage
+            }
+            res.json({ status: 'productAdded', product });
+            console.log('urun basariyla eklendi :', product);
+        })
+        .catch(err => {
+            res.json({ status: 'productNotAdded', err });
+            console.log(err);
+        });
+
+});
+
+
+// get products for admin
+app.get('/profile/admin/getProduct/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    database('products')
+        .select('*')
+        .from('products')
+        .where('userid', userId)
+        .then(product => {
+            if (product !== 0) {
+                const products = product
+                res.json({ status: 'getProducts', products });
+//                console.log('alinan urunler : ', products);
+            }
+        })
+        .catch(err => {
+            res.json({ status: 'cannotGetProducts' });
+            console.log('urunleri alirken hata olustu : ', err);
+        })
+})
+
+// get product for normal user
+app.get('/profile/getProduct/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    database('products')
+        .select('*')
+        .from('products')
+        .then(product => {
+            if (product !== 0) {
+                const products = product
+                res.json({ status: 'getProducts', products });
+//                console.log('alinan urunler : ', products);
+            }
+        })
+        .catch(err => {
+            res.json({ status: 'cannotGetProducts' });
+            console.log('urunleri alirken hata olustu : ', err);
+        })
+})
+
+
+// get purchased products for admin
+app.get('/profile/admin/purchasedProducts/:userId', (req, res) => {
+    const userId = req.params.userId;
+    
+    database('purchased_products')
+    .select('*')
+    .from('purchased_products')
+    .where('adminid', userId)
+    .then(isEmpty => {
+        if(isEmpty !== 0){
+            const purchasedProducts = isEmpty;
+            console.log('alinan satin alinmis itemler : ', purchasedProducts);
+            console.log(userId);
+            res.json({status : 'getPurchasedProducts', purchasedProducts});
+        }
+    })
+    .catch(err => {
+        console.log('satilmis urunleri alirken hata oldu : ', err);
+        res.json({status: 'cannotGetPurchasedProducts', err});
+    })
+});
+
+
+
+
+
+
+
+
+
 
 // get role from db
 app.get('/role/:userId', (req, res) => {
