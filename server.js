@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const knex = require('knex');
+const fs = require('fs');
+const path = require('path');
 
 const database = knex({
     client: 'pg',
@@ -143,7 +145,7 @@ app.get('/cardpayment/:userId', (req, res) => {
         .where('userid', userId)
         .then(cardInfo => {
             if (cardInfo.length > 0) {
-                res.json({ status: 'cardtrue' })
+                res.json({ status: 'cardtrue',  cardInfo})
             } else {
                 res.json({ status: 'cardfasle' })
             }
@@ -367,11 +369,13 @@ app.get('/profile/admin/purchasedProducts/:userId', (req, res) => {
 });
 
 
+// buy and add to database by userid+adminid+productid
+app.post('/profile/admin/purchasedProducts/:userId', (req,res) => {
+
+});
 
 
-
-
-
+// get photos for carosel
 
 
 
