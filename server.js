@@ -145,11 +145,15 @@ app.get('/cardpayment/:userId', (req, res) => {
         .where('userid', userId)
         .then(cardInfo => {
             if (cardInfo.length > 0) {
-                res.json({ status: 'cardtrue',  cardInfo})
+                res.json({ status: 'cardtrue', cardInfo })
+                console.log('veri tabaninda kart bulundu :', cardInfo)
             } else {
-                res.json({ status: 'cardfasle' })
+                res.json({ status: 'cardfalse' })
+                console.log('veri tabaninda kart bulunamadi')
             }
         })
+
+
         .catch(error => {
             console.error('Error fetching card information:', error);
             res.status(500).json({ error: 'Error fetching card information' });
@@ -316,7 +320,7 @@ app.get('/profile/admin/getProduct/:userId', (req, res) => {
             if (product !== 0) {
                 const products = product
                 res.json({ status: 'getProducts', products });
-//                console.log('alinan urunler : ', products);
+                //                console.log('alinan urunler : ', products);
             }
         })
         .catch(err => {
@@ -336,7 +340,7 @@ app.get('/profile/getProduct/:userId', (req, res) => {
             if (product !== 0) {
                 const products = product
                 res.json({ status: 'getProducts', products });
-//                console.log('alinan urunler : ', products);
+                //                console.log('alinan urunler : ', products);
             }
         })
         .catch(err => {
@@ -349,28 +353,57 @@ app.get('/profile/getProduct/:userId', (req, res) => {
 // get purchased products for admin
 app.get('/profile/admin/purchasedProducts/:userId', (req, res) => {
     const userId = req.params.userId;
-    
     database('purchased_products')
-    .select('*')
-    .from('purchased_products')
-    .where('adminid', userId)
-    .then(isEmpty => {
-        if(isEmpty !== 0){
-            const purchasedProducts = isEmpty;
-            console.log('alinan satin alinmis itemler : ', purchasedProducts);
-            console.log(userId);
-            res.json({status : 'getPurchasedProducts', purchasedProducts});
-        }
-    })
-    .catch(err => {
-        console.log('satilmis urunleri alirken hata oldu : ', err);
-        res.json({status: 'cannotGetPurchasedProducts', err});
-    })
+        .select('*')
+        .from('purchased_products')
+        .where('adminid', userId)
+        .then(isEmpty => {
+            if (isEmpty !== 0) {
+                const purchasedProducts = isEmpty;
+                console.log('alinan satin alinmis itemler : ', purchasedProducts);
+                console.log(userId);
+                res.json({ status: 'getPurchasedProducts', purchasedProducts });
+            }
+        })
+        .catch(err => {
+            console.log('satilmis urunleri alirken hata oldu : ', err);
+            res.json({ status: 'cannotGetPurchasedProducts', err });
+        })
 });
 
 
 // buy and add to database by userid+adminid+productid
-app.post('/profile/admin/purchasedProducts/:userId', (req,res) => {
+app.post('/profile/admin/purchasedProducts/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const { sellerId,adminId,purchasedUser, purchasedUserEmail, productName, productPrice, productQuantity, selectedCategory } = req.body;
+
+    database('purchased_products')
+        .insert({
+            userid: userId,
+            adminid: sellerId,
+            user_name: purchasedUser,
+            user_email: purchasedUserEmail,
+            product_name: productName,
+            product_price: productPrice,
+            product_quantity: productQuantity,
+            category_name: selectedCategory,
+            purchased_date: new Date()
+        })
+        .then(() => {
+            const productOfAdmin = {
+                userid: userId,
+                adminid: sellerId,
+                user_name: purchasedUser,
+                user_email: purchasedUserEmail,
+                product_name: productName,
+                product_price: productPrice,
+                product_quantity: productQuantity,
+                category_name: selectedCategory,
+                purchased_date: new Date()
+            }
+            res.json({ status: 'success', productOfAdmin })
+        })
+        .catch(err => console.log('server error adding database :', err))
 
 });
 
