@@ -102,6 +102,22 @@ app.post('/login/signin', (req, res) => {
         });
 });
 
+// Search Products
+app.post('/search/products', (req, res) => {
+    const { searchboxitem } = req.body;
+
+    database('products')
+        .select('*')
+        .from('products')
+        .where('productname', 'like', '%' + searchboxitem + '%')
+        .then(product => {
+            if (product.length !== 0) {
+                res.json({ status: 'success', product })
+            } else {
+                res.json({ status: 'failed' })
+            }
+        })
+})
 
 /// LoginPage - sign up
 app.post('/login/signup', (req, res) => {
@@ -375,7 +391,7 @@ app.get('/profile/admin/purchasedProducts/:userId', (req, res) => {
 // buy and add to database by userid+adminid+productid
 app.post('/profile/admin/purchasedProducts/:userId', (req, res) => {
     const userId = req.params.userId;
-    const { sellerId,adminId,purchasedUser, purchasedUserEmail, productName, productPrice, productQuantity, selectedCategory } = req.body;
+    const { sellerId, adminId, purchasedUser, purchasedUserEmail, productName, productPrice, productQuantity, selectedCategory } = req.body;
 
     database('purchased_products')
         .insert({
