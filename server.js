@@ -324,6 +324,26 @@ app.post('/profile/admin/addProduct/:userId', (req, res) => {
 });
 
 
+// get product by category
+app.post('/product/category', (req, res) => {
+    const userId = req.params.userId;
+    const { category } = req.body;
+
+    database('webstore')
+    .select('*')
+    .from('products')
+    .where('category_name', category)
+    .then(categoryFound => {
+        if (categoryFound !== null) {
+            res.json({ status : 'success', categoryFound})
+            console.log('found', categoryFound)
+        }else{
+            res.json({ status: 'error'})
+        }
+    })
+    .catch(err => console.log(err))
+})
+
 // get products for admin
 app.get('/profile/admin/getProduct/:userId', (req, res) => {
     const userId = req.params.userId;
@@ -374,7 +394,7 @@ app.get('/profile/admin/purchasedProducts/:userId', (req, res) => {
         .from('purchased_products')
         .where('adminid', userId)
         .then(isEmpty => {
-            if (isEmpty !== 0) {
+            if (isEmpty !== null) {
                 const purchasedProducts = isEmpty;
                 console.log('alinan satin alinmis itemler : ', purchasedProducts);
                 console.log(userId);
