@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const knex = require('knex');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 const database = knex({
     client: 'pg',
@@ -227,6 +228,59 @@ app.get('/cardpaymentdelete/:userId', (req, res) => {
 });
 
 
+
+
+
+// #############################################################  A D R E S   S T A R T  ########################################################################
+
+// set Nes Adress With Google API
+app.post('/profile/adress-new-google-api/:userId', (req, res) => {
+    const { address, userEmail, userName, userPhone, userZip, userBuildingNo, userFoor, userApartmentNo, userAdressDirection, lat, lng } = req.body;
+    const userId = req.params.userId;
+
+    console.log('frontendden gelen lat ve lng : ', lat, lng);
+
+    database('adressapi2')
+        .insert({
+            userid: userId,
+            adress_adress: address,
+            adress_useremail: userEmail,
+            adress_username: userName,
+            adress_userphone: userPhone,
+            adress_userzip: userZip,
+            adress_userbuildingno: userBuildingNo,
+            adress_userfoor: userFoor,
+            adress_userapartmentno: userApartmentNo,
+            adress_useradressdirection: userAdressDirection,
+            coordinate_lat: lat,
+            coordinate_lng: lng,
+        })
+
+        .then(() => {
+            const newAdressOfUser = {
+                userid: userId,
+                adress_adress: address,
+                adress_useremail: userEmail,
+                adress_username: userName,
+                adress_userphone: userPhone,
+                adress_userzip: userZip,
+                adress_userbuildingno: userBuildingNo,
+                adress_userfoor: userFoor,
+                adress_userapartmentno: userApartmentNo,
+                adress_useradressdirection: userAdressDirection,
+                coordinate_lat: lat,
+                coordinate_lng: lng,
+            }
+            res.json({ status: 'adress-success', newAdressOfUser });
+        })
+        .catch(err => {
+            res.status(500).json({ status: 'erraddadress' });
+            console.log('SERVER - adres eklerken sorun : ', err)
+        })
+
+});
+
+
 // set new adres
 app.post('/profile/adress-new/:userId', (req, res) => {
     const { userEmail, userAdress, userAdress2, userCity, userAdressState, userZip } = req.body;
@@ -266,9 +320,9 @@ app.post('/profile/adress-new/:userId', (req, res) => {
 app.get('/profile/adress/:userId', (req, res) => {
     const userId = req.params.userId;
 
-    database('adress')
+    database('adressapi2')
         .select('*')
-        .from('adress')
+        .from('adressapi2')
         .where('userid', userId)
         .then(adressInfo => {
             if (adressInfo.length > 0) {
@@ -285,6 +339,7 @@ app.get('/profile/adress/:userId', (req, res) => {
         });
 });
 
+// ############################################################# A D R E S   E N D ########################################################################
 
 // add products
 app.post('/profile/admin/addProduct/:userId', (req, res) => {
@@ -330,18 +385,18 @@ app.post('/product/category', (req, res) => {
     const { category } = req.body;
 
     database('webstore')
-    .select('*')
-    .from('products')
-    .where('category_name', category)
-    .then(categoryFound => {
-        if (categoryFound !== null) {
-            res.json({ status : 'success', categoryFound})
-            console.log('found', categoryFound)
-        }else{
-            res.json({ status: 'error'})
-        }
-    })
-    .catch(err => console.log(err))
+        .select('*')
+        .from('products')
+        .where('category_name', category)
+        .then(categoryFound => {
+            if (categoryFound !== null) {
+                res.json({ status: 'success', categoryFound })
+                console.log('found', categoryFound)
+            } else {
+                res.json({ status: 'error' })
+            }
+        })
+        .catch(err => console.log(err))
 })
 
 // get products for admin
@@ -453,6 +508,13 @@ app.get('/role/:userId', (req, res) => {
     const userId = req.body.params;
 
 });
+
+app.get('/getenv', (req, res) => {
+    res.json({ apikey : process.env.GOOGLE_MAPS_API_KEY})
+});
+
+
+console.log('env degerim : ', process.env.GOOGLE_MAPS_API_KEY)
 
 // HomePage
 app.get("/", (req, res) => {
